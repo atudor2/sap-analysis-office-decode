@@ -10,21 +10,20 @@ Public Class Main
 
     Private _menge As Integer
     Private _variablesXml As Boolean = False
-    Private ReadOnly _temppath As String = Path.GetTempPath
+    Private ReadOnly _temppath As String = Path.Combine(Environment.CurrentDirectory, "working_files")
     Private _xlsxToZip As String                         'Excel zu Zip
     Private _folder As String                            'Tempordner für das Editieren der Binary-Datei
     Private _workbook As String                          'Originalfile aus BW
     Private _xmlScriptDoc As XmlDocument = Nothing
-
 
     Friend Function GetAnalysisOfficeXml(tempfilename As String) As Boolean
 
         Dim s As String
         Dim xmlText As String
 
-        _xlsxToZip = _temppath & Path.GetFileNameWithoutExtension(tempfilename) & ".zip"
+        _xlsxToZip = Path.Combine(_temppath, Path.GetFileNameWithoutExtension(tempfilename) & ".zip")
         _workbook = tempfilename
-        _folder = _temppath & Path.GetFileNameWithoutExtension(tempfilename)
+        _folder = Path.Combine(_temppath, Path.GetFileNameWithoutExtension(tempfilename))
 
         Try
 
@@ -62,7 +61,7 @@ Public Class Main
                     xmlText = DecompressString(s.Substring(beforeHeader, afterHeader - beforeHeader))
                     _xmlScriptDoc = New XmlDocument()
                     _xmlScriptDoc.LoadXml(xmlText)
-                    _xmlScriptDoc.Save(Path.GetTempPath & Path.DirectorySeparatorChar & Path.GetFileNameWithoutExtension(txt_path.Text) & _menge & "__XML-Repository.xml")
+                    _xmlScriptDoc.Save(Path.Combine(_temppath, Path.GetFileNameWithoutExtension(txt_path.Text) & _menge & "__XML-Repository.xml"))
                     _menge += 1
                     i = beforeHeader + 1
                     a = afterHeader + 1
@@ -80,9 +79,9 @@ Public Class Main
 
     Friend Function SetAnalysisOfficeXml(tempfilename As String, xmltext As String) As Boolean
         Dim s As String
-        _xlsxToZip = _temppath & Path.GetFileNameWithoutExtension(tempfilename) & ".zip"
+        _xlsxToZip = Path.Combine(_temppath, Path.GetFileNameWithoutExtension(tempfilename) & ".zip")
         _workbook = tempfilename
-        _folder = _temppath & Path.GetFileNameWithoutExtension(tempfilename)
+        _folder = Path.Combine(_temppath, Path.GetFileNameWithoutExtension(tempfilename))
 
         Try
 
@@ -141,7 +140,7 @@ Public Class Main
         Try
             For i = 0 To _menge - 1
                 _xmlScriptDoc = New XmlDocument()
-                _xmlScriptDoc.Load(Path.GetTempPath & Path.DirectorySeparatorChar & Path.GetFileNameWithoutExtension(txt_path.Text) & i & "__XML-Repository.xml")
+                _xmlScriptDoc.Load(Path.Combine(_temppath, Path.GetFileNameWithoutExtension(txt_path.Text) & i & "__XML-Repository.xml"))
                 Dim xmlText As String = Compress(_xmlScriptDoc.InnerXml)
                 If SetAnalysisOfficeXml(txt_path.Text, xmlText) Then
                     MessageBox.Show("Kompression erfolgreich")
@@ -156,7 +155,11 @@ Public Class Main
 
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
 
-        Process.Start("explorer.exe", Path.GetTempPath())
+        Process.Start("explorer.exe", _temppath)
 
+    End Sub
+
+    Private Sub Main_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Directory.CreateDirectory(_temppath)
     End Sub
 End Class
