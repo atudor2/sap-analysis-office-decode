@@ -106,7 +106,18 @@ Public Class Main
 
             'Speichere Binary File ab
             File.WriteAllBytes(_folder & "\xl\" & customProperty, binaryFileOutput)
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return False
+        End Try
+        Return True
+    End Function
 
+    Private Function RepackExcelFile(tempfilename As String) As Boolean
+        Dim s As String
+        _folder = Path.Combine(_temppath, Path.GetFileNameWithoutExtension(tempfilename))
+
+        Try
             ZipFile.CreateFromDirectory(_folder, _xlsxToZip)
 
             'Löschen des Tempordners
@@ -116,6 +127,7 @@ Public Class Main
             File.Move(_xlsxToZip, _workbook)
 
         Catch ex As Exception
+            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return False
         End Try
         Return True
@@ -142,12 +154,15 @@ Public Class Main
                 _xmlScriptDoc = New XmlDocument()
                 _xmlScriptDoc.Load(Path.Combine(_temppath, Path.GetFileNameWithoutExtension(txt_path.Text) & i & "__XML-Repository.xml"))
                 Dim xmlText As String = Compress(_xmlScriptDoc.InnerXml)
-                If SetAnalysisOfficeXml(txt_path.Text, xmlText) Then
-                    MessageBox.Show("Kompression erfolgreich")
+                If Not SetAnalysisOfficeXml(txt_path.Text, xmlText) Then
+                    MessageBox.Show("Error during packing of BICS_VIEW_HEADER XML file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Return
                 End If
             Next
+            RepackExcelFile(txt_path.Text)
+            MessageBox.Show("Kompression erfolgreich")
         Catch ex As Exception
-            MessageBox.Show(ex.Message)
+            MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
 #End Region
